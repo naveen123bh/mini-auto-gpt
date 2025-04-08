@@ -1,11 +1,15 @@
 import streamlit as st
 import requests
 import os
-import pyttsx3
-import speech_recognition as sr
 
-# Initialize TTS engine
-engine = pyttsx3.init()
+# Try importing voice modules
+try:
+    import pyttsx3
+    import speech_recognition as sr
+    voice_enabled = True
+    engine = pyttsx3.init()
+except Exception:
+    voice_enabled = False
 
 # Set page config
 st.set_page_config(page_title="Auto-GPT Mini", page_icon="🤖")
@@ -17,11 +21,15 @@ if "history" not in st.session_state:
 
 # Function to speak text
 def speak(text):
-    engine.say(text)
-    engine.runAndWait()
+    if voice_enabled:
+        engine.say(text)
+        engine.runAndWait()
 
 # Function to recognize voice
 def listen_voice():
+    if not voice_enabled:
+        st.error("🎤 Voice input not supported in this environment.")
+        return ""
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
         st.info("🎤 Listening for your voice...")
@@ -65,7 +73,9 @@ if input_method == "💬 Type":
     goal = st.text_input("🧠 What is your goal today?")
 
 elif input_method == "🎤 Voice":
-    if st.button("🎙️ Speak Now"):
+    if not voice_enabled:
+        st.warning("🎤 Voice input is not available in this environment.")
+    elif st.button("🎙️ Speak Now"):
         goal = listen_voice()
 
 elif input_method == "📄 From File":
